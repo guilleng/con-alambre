@@ -21,11 +21,8 @@ An overly simplified build system.
 + [make Recipes](#make-recipes)
     + [Building](#build)
     + [Running Tests](#running-tests)
-+ [Requirements](#requirements)
 + [Installation](#installation)
 + [Contributing](#contributing)
-
----
 
 ## Overview
 
@@ -39,6 +36,8 @@ The system integrates the minunit test framework and consists of a set of simple
 template files, a bash script, and a Makefile.  It provides functionality to add
 templates to interfaces, implementations, and test files.  To achieve this, the
 project folder structure has to follow a specific outline. 
+
+---
 
 ## File Generation
 
@@ -134,7 +133,9 @@ Module name (no extension): another_standalone_module
     └── a_standalone_module.c
 ```
 
-### Unit Testing
+---
+
+## Unit Testing
 
 First and foremost, read the [minunit](https://github.com/siu/minunit)
 documentation to familiarize yourself with the testing process.    
@@ -143,7 +144,7 @@ Before continuing, we should agree on the difference between testing `.c`
 __implementations__ while the latter, __interfaces__. The rules of the Makefile
 rely on this fact.
 
-#### Source Files
+### Source Files
 
 To generate testing units for implementations (withe-box testing): 
 
@@ -172,7 +173,7 @@ int main(int argc, char *argv[])
 #endif
 ```
 
-#### Interfaces
+### Interfaces
 
 Similarly, to generate testing units for interfaces (black-box testing):
 
@@ -192,18 +193,20 @@ Source file name (with extension, should already exist): my_module.h
  └── test_my_module_publ.c  <--generated file
  ```
 
-### `make` Recipes
+---
 
-#### Building
+## `make` Recipes
+
+### Building
 
 Shipped only with the basic spells: `make` and `make clean`.  
 
-#### Running Tests
+### Running Tests
 
-##### Run a Single Test Unit
+#### Run a Single Test Unit
 
 To build and run a particular unit, use the rule `make test_%_priv` or 
-`make test_%_publ`. 
+`make test_%_publ` accordingly. 
 
 This will display the test results on the terminal.
 
@@ -220,8 +223,9 @@ Finished in 0.00006183 seconds (real) 0.00006003 seconds (proc)
 #### Run Tests Silently
 
 To build and run the tests silently, use the `make tests` command. This compiles
-and runs all tests in the `tests/` folder, sending output to `stderr`.   If any
-of the tests fail (return a non-zero value), an error message will be displayed.
+and runs all tests in the `tests/` folder, sending output to the null device.
+The testing process aborts if any of the tests fails, revealing the name of the
+faulty test runner.
 
 ```shell
 make tests
@@ -232,11 +236,12 @@ Exit code: 1
 make: *** [Makefile:55: tests] Error 1
 ```
 
-## Requirements
+## Installation 
 
-+ `bash`: The Bourne Again SHell.
+__Prerequisites:__  
 
-## Installation
+`bash` must be installed.  If available, the script will use `curl` to fetch the
+minunit header from its source.
 
 [Download](https://github.com/guilleng/con-alambre/zipball/master) the zipped
 repository or clone it to a folder of your preference:  
@@ -251,16 +256,11 @@ mkdir -p ~/.local/bin/alambre
 ln -s "$(pwd)/alambre.sh" ~/.local/bin/alambre
 ```
 
-__Final notes__: 
+__Final notes:__  
 
-The template test file has a _cheat sheet_ with minunit's assertions.  
-When spelling the name of the script by itself, it displays the list of
-commands:  
-
-```shell
-alambre
-commands: [init] [addmodule] [testunit]
-```
+The template test file has a _cheat sheet_ section with minunit's assertions.  
+When spelling the name of the script without any arguments, it displays the list
+of commands.
 
 ---
 
