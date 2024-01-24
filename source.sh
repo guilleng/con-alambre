@@ -2,14 +2,14 @@
 
 function get_input() {
 
-  read -p "$1" answer
+  read -rp "$1" answer
 
   case "${answer}" in
     [Yy][Ee][Ss] | [Yy])
-      echo 1
+      true
       ;;
     *)
-      echo 0
+      false
       ;;
   esac
 }

@@ -3,6 +3,7 @@
 # Get the directory where the script is located
 script=$(test -L "${0}" && readlink -n "${0}" || echo "${0}")
 path=$(dirname "${script}")
+# shellcheck source=./source.sh
 . "${path}/source.sh"
 
 # minunit source file
@@ -23,10 +24,9 @@ case "${command}" in
     fi
 
     # Set-up
-    read -p "Main program name: " name
+    read -rp "Main program name: " name
     if [ -z "${name}" ]; then
-      answer=$(get_input "No main entry point given, write a standalone module? ")
-      if [ "$answer" -eq 0 ]; then
+      if ! get_input "No main entry point given, write a standalone module? "; then
           exit 1
       fi
       set_up_standalone_modules
@@ -36,7 +36,7 @@ case "${command}" in
     ;;
 
   "addmodule")
-    read -p "Module name (no extension): " name
+    read -rp "Module name (no extension): " name
     if [ -z "${name}" ]; then
       echo "Name needed"
       exit 2
@@ -47,7 +47,7 @@ case "${command}" in
 
   "testunit")
     echo -n "Source file (with extension, should already exist): "
-    read name
+    read -r name
     if [ -z "${name}" ]; then
         echo "Name needed"
         exit 3
