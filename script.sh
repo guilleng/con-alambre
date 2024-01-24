@@ -3,6 +3,7 @@
 # Get the directory where the script is located
 script=$(test -L "${0}" && readlink -n "${0}" || echo "${0}")
 path=$(dirname "${script}")
+
 # shellcheck source=./source.sh
 . "${path}/source.sh"
 
@@ -18,60 +19,62 @@ command="$1"
 
 case "${command}" in
   "init")
-    # Try to update minunit header
     if command -v curl &> /dev/null; then
       update_minunit
     fi
 
     # Set-up
-    read -rp "Main program name: " name
-    if [ -z "${name}" ]; then
-      if ! get_input "No main entry point given, write a standalone module? "; then
-          exit 1
-      fi
-      set_up_standalone_modules
-    else
-      set_up_main_entry_point
-    fi
+    echo "[1] Single-file (or application-like)"
+    echo "[2] Standalone modules"
+		read -rp "Choose one: " answer
+
+    case "${answer}" in
+      1)
+        set_up_main_entry_point
+        ;;
+      2)
+        set_up_standalone_modules
+        ;;
+      *)
+        exit
+        ;;
+    esac
     ;;
 
   "addmodule")
-    read -rp "Module name (no extension): " name
+    read -rp "Module name (without extension): " name
     if [ -z "${name}" ]; then
       echo "Name needed"
-      exit 2
+      exit
     else
       set_up_dotc_doth_pair
     fi
     ;;
 
   "testunit")
-    echo -n "Source file (with extension, should already exist): "
+    echo -n "File name (with extension): "
     read -r name
     if [ -z "${name}" ]; then
         echo "Name needed"
-        exit 3
+        exit
     fi
     fname="${name%.*}"
 
     case "${name}" in
-
       *.c)
         white_box_testing
         ;;
-
       *.h)
         black_box_testing
         ;;
-
       *)
-        echo "Invalid input"
-        exit 6
+        echo "Enter an existing source file with its extension."
+        exit
         ;;
     esac
     ;;
   *)
     echo "commands: [init] [addmodule] [testunit]"
-    exit 0
+    exit
     ;;
 esac

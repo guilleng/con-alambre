@@ -1,26 +1,9 @@
-#!/usr/bin/env bash
+update_minunit() {
 
-function get_input() {
-
-  read -rp "$1" answer
-
-  case "${answer}" in
-    [Yy][Ee][Ss] | [Yy])
-      true
-      ;;
-    *)
-      false
-      ;;
-  esac
-}
-
-
-function update_minunit() {
-
-  curl --max-time 2 -s "${minunit_header_raw}" > "${path}/minunit-temp.h"
+  curl --max-time 1 -s "${minunit_header_raw}" > "${path}/minunit-temp.h"
 
   if [ ! $? -eq 0 ]; then
-    echo "Fail update: minunit.h. Check connection/validity of the download link."
+    echo "Failed to update minunit.h"
   else
     cat "${path}/minunit-temp.h" > "${minunit_header}"
     rm "${path}/minunit-temp.h"
@@ -28,69 +11,70 @@ function update_minunit() {
 }
 
 
-function set_up_standalone_modules() {
+set_up_standalone_modules() {
 
   cp -r "$layout_files"/* .; rm ./src/main.c
 
   # Set-up makefile:
-  # Get rid of some variables, rules and recipes.
-  sed -i 's/^all: .*/all: \$(OBJS)/' ./Makefile
-  sed -i '/TARGET_EXEC/{N;d;}' ./Makefile
-  sed -i '/$(BUILD_DIR)/{N;d;}' ./Makefile        
-  sed -i '/BUILD_DIR/d' ./Makefile
-
+  # First get rid of some variables, rules and recipes.
+  sed -i 's/^all: .*/all: \$(OBJS)/
+  /TARGET_EXEC/{N;d;}
+  /$(BUILD_DIR)/{N;d;}
+  /BUILD_DIR/d
   # Fix TEST_OBJS variable
-  sed -i '/^TEST_SRCS := /i\TEST_OBJS := $(patsubst $(SRC_DIR)/%.c, $(TEST_BIN)/%.o, $(SRCS))' ./Makefile
-
+  /^TEST_SRCS := /i\TEST_OBJS := $(patsubst $(SRC_DIR)/%.c, $(TEST_BIN)/%.o, $(SRCS))
   # Re-write directory creation rule
-  sed -i '/^\.PHONY: .*/i \ $(OBJ_DIR) $(TEST_BIN):\n\t@mkdir -p $@\n' ./Makefile
-
+  /^\.PHONY: .*/i \ $(OBJ_DIR) $(TEST_BIN):\n\t@mkdir -p $@\n
   # Fix clean target
-  sed -i '/clean:/a\\t@rm -rf $(OBJ_DIR) $(TEST_BIN)' ./Makefile
+  /clean:/a\\t@rm -rf $(OBJ_DIR) $(TEST_BIN)' ./Makefile
+
+	# Merges consecutive empty lines
   sed -i '/^$/N;/\n$/D' ./Makefile
+
   ${0} addmodule
 }
 
 
-function set_up_main_entry_point() {
+set_up_main_entry_point() {
+
+  read -rp "Main program name: " name
 
   cp -r "$layout_files"/* .
   if [ ! "${name}" = "main" ]; then 
     mv ./src/main.c ./src/"$name".c
   fi
 
-  # Set target executable in Makefile
+  # Set `name` as target executable in Makefile
   sed -i 's/TARGET_EXEC := /TARGET_EXEC := '"${name}"'/' ./Makefile
 }
 
 
-function set_up_dotc_doth_pair() {
+set_up_dotc_doth_pair() {
 
   # Copy and rename module files
   if [ ! -d "./include" ]; then
     mkdir ./include
   fi
-  
   cp "${module_files}/newmodule.h" ./include
   cp "${module_files}/newmodule.c" ./src
   mv ./include/newmodule.h ./include/"${name}".h
   mv ./src/newmodule.c ./src/"${name}".c
 
-  # Add preprocessor include guards to header
   uppercase="${name^^}"
+  # Set preprocessor guards to header and source file include directive
   sed -i "s/MODULE_FILENAME/${uppercase}_H/g" ./include/"${name}".h
   sed -i "s/MODULE_FILENAME/${name}.h/g" ./src/"${name}".c
 }
 
 
-function white_box_testing() {
+white_box_testing() {
 
   if [ ! -f "./src/${name}" ]; then
     echo "No source file $name"
     exit 4
   fi 
 
-  if [ ! -d "./tests" ]; then
+  if [ ! -d ./tests ]; then
     mkdir ./tests
     cp ${minunit_header} ./tests
   fi
@@ -107,7 +91,7 @@ function white_box_testing() {
 }
 
 
-function black_box_testing() {
+black_box_testing() {
 
   if [ ! -f "./include/${name}" ]; then 
     echo "No source file ${name}"
