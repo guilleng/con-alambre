@@ -7,17 +7,12 @@ path=$(dirname "${script}")
 # shellcheck source=./source.sh
 . "${path}/source.sh"
 
-# minunit source file
 minunit_header_raw="https://raw.githubusercontent.com/siu/minunit/master/minunit.h"
-minunit_header="${path}/templates/test-unit/minunit.h"
+minunit_header="${path}/templates/minunit.h"
+test_base="${path}/templates/test_.c"
+makefile="${path}/templates/Makefile"
 
-layout_files="${path}/templates/base-layout"
-module_files="${path}/templates/module"
-test_files="${path}/templates/test-unit"
-
-command="$1"
-
-case "${command}" in
+case "${1}" in
   "init")
     if command -v curl &> /dev/null; then
       update_minunit
@@ -74,7 +69,8 @@ case "${command}" in
     esac
     ;;
   *)
-    echo "commands: [init] [addmodule] [testunit]"
+    echo "Commands:"
+    echo "          init | addmodule | testunit"
     exit
     ;;
 esac
