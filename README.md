@@ -1,97 +1,59 @@
-# Con Alambre
+Con Alambre
+===========
 
-An overly simplified build system. 
 
-> __TL;DR__  
-> Scaffolding tool for generating C source files, headers, and test files, along
-> with integration of the [minunit](https://github.com/siu/minunit) unit test 
-> framework. 
-> I'm using this to avoid the overhead of learning a complex, feature-rich 
-> toolchain because, right now, a minimalist setup like this meet my needs.
+Minimalistic scaffolding tool for generating C source files, headers, and test
+files, along with integration of the [minunit](https://github.com/siu/minunit)
+unit test framework. 
 
-## Table of Contents
+
+Table of Contents
+-----------------
 
 + [Overview](#overview)
-+ [File Generation](#file-generation)
-    + [Single File Project](#single-file-project)
-    + [Multiple File Projects](#multiple-file-projects)
-+ [Unit Testing](#unit-testing)
-    + [Testing a Source File](#testing-a-source-file)
-    + [Testing an Interface](#testing-an-interface)
-+ [make Recipes](#make-recipes)
-    + [Building](#build)
-    + [Running Tests](#running-tests)
-+ [Installation](#installation)
-+ [Contributing](#contributing)
++ [Getting started](#getting-started)
++ [Building and Testing](#building-and-testing)
 
-## Overview
 
-`alambre` provides a rudimentary level of automation and organization suitable 
-for users who fall into the "in-between" category.  It is designed for those who
-are not writing large codebases requiring the complexity of a full-fledged 
-toolchain, but still will benefit from some level of automation for testing, 
-compilation, and file management.
+### Overview
 
-The system integrates the minunit test framework and consists of a set of simple 
-template files, a bash script, and a Makefile.  It provides functionality to add
-templates to interfaces, implementations, and test files.  To achieve this, the
-project folder structure has to follow a specific outline. 
+The system integrates the minunit test framework and consists of a set of
+template files, a bash script, and a Makefile.  The script provides a
+rudimentary level of automation and organization for scaffolding code.  The
+makefile streamlines the testing and building, relying on the following:
 
----
++ Testing a `*.c` file means testing an implementation (private or white box
+  test).
 
-## File Generation
++ Testing a `*.h` file means testing an interface (public or black box test).
 
-> The `/example` folder contains the dummy projects described below. 
++ The code follows a specific folder structure.
 
-### Single File Project
 
-To create a new project, navigate to the desired directory and then run `init`:
+###### You can scaffold three types of projects:
+
+1. Single file projects where all code resides in one source file:
 
 ```shell
-mkdir -p examples/01-single-file
-cd examples/01-single-file/
-alambre init
-Main program name: program
 .
 ├── Makefile
-└── src
-    └── program.c
+├── src
+│   └── program.c
+├── tests
+├── minunit.h
+└── test_program_priv.c
 ```
 
-### Multiple File Projects
 
-The script can manage multiple file projects that may or may not contain a main 
-entry point.
-
-#### Application
-
-In this example, `main()` is defined in `program.c`.  The extra modules complete
-the application. 
-
-> Beware of dependencies.  Only include headers into other headers.  The only 
-> exception is obviously the source file containing the program's main entry
-> point. 
-
-To start, follow the same steps as the 
-[Single File Project](#single-file-project).
-
-##### Adding Modules
-
-To add a module, use the command `alambre addmodule`.  Enter the module name
-(without the extension) when prompted.
+2. Application-like projects with a `main()` entry point plus modules:
 
 ```shell
-alambre addmodule
-Module name (no extension): my_module
-alambre addmodule
-Module name (no extension): my_other_module
 .
 ├── include
 │   ├── my_module.h
 │   ├── my_other_module.h
 │   └── shared_utils.h
 ├── Makefile
-├── my_module
 ├── src
 │   ├── my_module.c
 │   ├── my_other_module.c
@@ -105,110 +67,102 @@ Module name (no extension): my_other_module
     └── test_program_priv.c
 ```
 
-> The user must manually include the appropriate directives to resolve interface
-> dependencies.  Inclusion of a module's header is not automated.
+
+3. Standalone modules without a main entry point:
+
+```shell
+.
+├── include
+│   ├── another_standalone_module.h
+│   └── a_standalone_module.h
+├── Makefile
+└── src
+│  ├── another_standalone_module.c
+│  └── a_standalone_module.c
+└── tests
+    ├── minunit.h
+    ├── ....
+```
+
+
+---
+
+### Getting Started
+
+First read the [minunit](https://github.com/siu/minunit).  (Its very short)
+
+[Download](https://github.com/guilleng/con-alambre/zipball/master) the zipped
+repository or clone it and link it:
+
+```shell
+git clone https://github.com/guilleng/con-alambre 
+chmod +x con-alambre/script.sh
+ln -s "$(pwd)/con-alambre/alambre.sh" ~/.local/bin/alambre
+```
+
+
+#### Single File Project
+
+Create a new directory for your project, navigate into it and run `init`:
+
+```shell
+$ alambre init
+[1] Single-file (or application-like)
+[2] Standalone modules
+Choose one: 1
+Main program name: program
+```
+
+With this type of structure you can unit test all functions other than `main()`.
+The script will automatically guard `main()` to ensure compilation of the test
+runner.
+
+
+```shell
+alambre testunit
+Source file name (with extension): program.c
+```
+
+
+#### Application-Like
+
+Just use the command `alambre addmodule` in a single file project.
+
+```shell
+alambre addmodule
+Module name (without extension): my_module
+alambre addmodule
+Module name (without extension): my_other_module
+```
+
+> You must manually add include directives to resolve interface dependencies.
+
+Use `alambre testunit` to selectively scaffold testing of `.c` or `.h` files
+from your modules.
 
 
 #### Standalone Modules
 
-If no "Main program name" is supplied to `init`, the script prompts the user to
-add a module.  If the answer is yes, the project is setup as a sort of library
-or some standalone component.  The Makefile will only generate object files from
-our sources.
+This option sets the project as a sort of library or standalone components.  The
+build will only generate an object files for each interface-implementation
+pair.  Use `alambre testunit` to test interfaces and/or implementation of the
+modules.
 
-```shell
-alambre init
-Main program name: 
-No main entry point given, add a code module? y
-Module name (no extension): a_standalone_module
-alambre addmodule
-Module name (no extension): another_standalone_module
-.
-├── include
-│   ├── another_standalone_module.h
-│   └── a_standalone_module.h
-├── Makefile
-└── src
-    ├── another_standalone_module.c
-    └── a_standalone_module.c
-```
 
 ---
 
-## Unit Testing
+### Building and Testing
 
-First and foremost, read the [minunit](https://github.com/siu/minunit)
-documentation to familiarize yourself with the testing process.    
-Before continuing, we should agree on the difference between testing `.c` 
-(source) and `.h` (header) files. The former are expected to be 
-__implementations__ while the latter, __interfaces__. The rules of the Makefile
-rely on this fact.
+> Set up your compiler and its flags in `templates/base-layout/Makefile`.
 
-### Source Files
+To build/rebuild use the common spells: `make` and `make clean`.
 
-To generate testing units for implementations (withe-box testing): 
 
-```shell
-alambre testunit
-Source file name (with extension, should already exist): program.c
-.
-├── Makefile
-├── src
-│   └── program.c
-└── tests
-├── minunit.h
-└── test_program_priv.c     <--generated file
-```
+#### Testing a Single Unit Test
 
-If the file to test defines `main()`, preprocessor guards are added to avoid 
-having multiple definitions of it during compilation of the test runner:  
+Use the rule `make test_%_priv` or `make test_%_publ` accordingly. 
 
-```c
-/* program.c */
-
-#ifndef MINUNIT_MINUNIT_H
-int main(int argc, char *argv[])
-{
-}
-#endif
-```
-
-### Interfaces
-
-Similarly, to generate testing units for interfaces (black-box testing):
-
-```shell
-alambre testunit
-Source file name (with extension, should already exist): my_module.h
- .
- ├── include
- │   └── my_module.h
- ├── Makefile
- ├── src
- │   ├── my_module.c
- │   └── program.c
- └── tests
- ├── minunit.h
- ├── test_my_module_priv.c
- └── test_my_module_publ.c  <--generated file
- ```
-
----
-
-## `make` Recipes
-
-### Building
-
-Shipped only with the basic spells: `make` and `make clean`.  
-
-### Running Tests
-
-#### Run a Single Test Unit
-
-To build and run a particular unit, use the rule `make test_%_priv` or 
-`make test_%_publ` accordingly. 
-
-This will display the test results on the terminal.
+You will see the test results on the terminal.
 
 ```shell
 make test_program_priv
@@ -220,12 +174,12 @@ make test_program_priv
 Finished in 0.00006183 seconds (real) 0.00006003 seconds (proc)
 ```
 
-#### Run Tests Silently
 
-To build and run the tests silently, use the `make tests` command. This compiles
-and runs all tests in the `tests/` folder, sending output to the null device.
+#### Building and Running All Tests
+
+Use `make tests` to compile and run all tests in the `tests/` folder silently.
 The testing process aborts if any of the tests fails, revealing the name of the
-faulty test runner.
+faulty runner.
 
 ```shell
 make tests
@@ -235,36 +189,3 @@ Exit code: 1
 
 make: *** [Makefile:55: tests] Error 1
 ```
-
-## Installation 
-
-__Prerequisites:__  
-
-`bash` must be installed.  If available, the script will use `curl` to fetch the
-minunit header from its source.
-
-[Download](https://github.com/guilleng/con-alambre/zipball/master) the zipped
-repository or clone it to a folder of your preference:  
-
-Give the script execute permissions.  If needed, create the folder
-`~/.local/bin` add it to your `$PATH` then make a symlink to the bash script:  
-
-```shell
-cd con-alambre
-chmod +x alambre.sh
-mkdir -p ~/.local/bin/alambre 
-ln -s "$(pwd)/alambre.sh" ~/.local/bin/alambre
-```
-
-__Final notes:__  
-
-The template test file has a _cheat sheet_ section with minunit's assertions.  
-When spelling the name of the script without any arguments, it displays the list
-of commands.
-
----
-
-## Contributing
-
-Feedback and contributions are appreciated and welcome. Feel free to report 
-bugs, suggest enhancements, or submit a pull request.  
