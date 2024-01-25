@@ -18,7 +18,6 @@ case "${1}" in
       update_minunit
     fi
 
-    # Set-up
     echo "[1] Single-file (or application-like)"
     echo "[2] Standalone modules"
 		read -rp "Choose one: " answer

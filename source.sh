@@ -15,20 +15,24 @@ set_up_standalone_modules() {
 
   cp "${makefile}" .
 
-  # Set-up makefile:
-  # First get rid of some variables, rules and recipes.
-  sed -i 's/^all: .*/all: \$(OBJS)/
+  # Modifying the makefile
+  sed -i '
+  # First we get rid of unneeded variables, rules and recipes
+  s/^all: .*/all: \$(OBJS)/
   /TARGET_EXEC/{N;d;}
   /$(BUILD_DIR)/{N;d;}
   /BUILD_DIR/d
-  # Fix TEST_OBJS variable
+
+  # Fix the TEST_OBJS variable
   /^TEST_SRCS := /i\TEST_OBJS := $(patsubst $(SRC_DIR)/%.c, $(TEST_BIN)/%.o, $(SRCS))
+
   # Re-write directory creation rule
   /^\.PHONY: .*/i \ $(OBJ_DIR) $(TEST_BIN):\n\t@mkdir -p $@\n
-  # Fix clean target
+
+  # Fix the clean target
   /clean:/a\\t@rm -rf $(OBJ_DIR) $(TEST_BIN)' ./Makefile
 
-  # Merges consecutive empty lines
+  # Tidy up: Merge consecutive empty lines
   sed -i '/^$/N;/\n$/D' ./Makefile
 
   "${0}" addmodule
@@ -51,7 +55,7 @@ int main(int argc, char *argv[])
 }
 EOF
 
-  # Set given `name` as target executable in Makefile
+  # Set $name as target executable
   sed -i 's/TARGET_EXEC := /TARGET_EXEC := '"${name}"'/' ./Makefile
 }
 
@@ -65,12 +69,12 @@ set_up_dotc_doth_pair() {
     mkdir ./src
   fi
 
-  # Place an include directive in source file.
+  # Create source file 
   cat << EOF > ./src/"${name}".c
 #include "${name}.h"
 EOF
 
-  # Set preprocessor guards in header 
+  # Create header file
   cat << EOF > ./include/"${name}".h
 #ifndef ${name^^}_H
 #define ${name^^}_H 
@@ -95,7 +99,7 @@ white_box_testing() {
   cat "${test_base}" > ./tests/test_"${fname}"_priv.c
   sed -i "s/FILE_TO_TEST/..\/src\/${fname}.c/g" ./tests/test_"${fname}"_priv.c
 
-  # Add guards if this source file defines main() 
+  # If this source file defines main(), guard it.
   if grep -q 'main(' src/"${fname}".c; then
     sed -i '/int main(/i \#ifndef MINUNIT_MINUNIT_H' src/"${fname}".c
     sed -i '/^int main/,/^}/s/^}/}\n#endif/' src/"${fname}".c
