@@ -30,7 +30,7 @@ makefile streamlines the testing and building, relying on the following:
 + The code follows a specific folder structure.
 
 
-###### You can scaffold three types of projects:
+#### You can scaffold three types of projects:
 
 1. Single file projects where all code resides in one source file:
 
@@ -89,7 +89,8 @@ makefile streamlines the testing and building, relying on the following:
 
 ### Getting Started
 
-First read the [minunit](https://github.com/siu/minunit).  (Its very short)
+First read the [minunit README](https://github.com/siu/minunit).  (Its very
+short.)
 
 [Download](https://github.com/guilleng/con-alambre/zipball/master) the zipped
 repository or clone it and link it:
@@ -114,8 +115,8 @@ Main program name: program
 ```
 
 With this type of structure you can unit test all functions other than `main()`.
-The script will automatically guard `main()` to ensure compilation of the test
-runner.
+The script will automatically guard the program's main entry point to ensure
+compilation of the test runner.
 
 
 ```shell
@@ -137,14 +138,13 @@ Module name (without extension): my_other_module
 
 > You must manually add include directives to resolve interface dependencies.
 
-Use `alambre testunit` to selectively scaffold testing of `.c` or `.h` files
-from your modules.
+Use `alambre testunit` to selectively scaffold testing for `.c` or `.h` files.
 
 
 #### Standalone Modules
 
 This option sets the project as a sort of library or standalone components.  The
-build will only generate an object files for each interface-implementation
+build will only generate an object file for each interface-implementation
 pair.  Use `alambre testunit` to test interfaces and/or implementation of the
 modules.
 
